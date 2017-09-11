@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>小球游戏</title>
+    <style type="text/css">
+    .wrap {
+        width: 500px;
+        margin: 0 auto;
+    }
+
+    #container {
+        width: 500px;
+        height: 500px;
+        margin: 0 auto;
+        border: 1px #f00 solid;
+        position: relative;
+    }
+
+    .ball {
+        position: absolute;
+        height: 10px;
+        width: 10px;
+        background: gray;
+        border-radius: 100%;
+    }
+
+    .baffle {
+        position: absolute;
+        bottom: 0;
+        height: 2px;
+        background: #000;
+        width: 20px;
+    }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <div id="container">
+        </div>
+        <button id="start">开始游戏</button>
+        当前得分：<span id="score"></span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 游戏状态:
+        <span id="state"></span>
+    </div>
+</body>
+<script>
+var ballDom = document.getElementById("ball");
+var container = document.getElementById("container");
+
+function ball() {
+    function domFactory() {
+        var dom = document.createElement('span');
+        dom.className = "ball";
+        return dom;
+    }
+    this.x = 0;
+    this.y = 0;
+    this.vx = 1;
+    this.vy = 1;
+    this.step = 1;
+    this.dom = domFactory();
+}
+
+ball.prototype.calculation = function() {
+    if (this.x >= 490 || this.x <= 0) this.vx = -this.vx;
+    if (this.y >= 490 || this.y <= 0) this.vy = -this.vy;
+    this.vy += this.vy * 0.01;
+    this.vy > 20 && (this.vy = 1);
+
+    this.x = this.x + this.vx * this.step;
+    this.y = this.y + this.vy * this.step;
+
+    (this.x > 490) && (this.x = 490);
+    (this.x < 0) && (this.x = 0);
+    (this.y > 490) && (this.y = 490);
+    (this.y < 0) && (this.y = 0);
+};
+
+ball.prototype.render = function() {
+    this.dom.style.left = this.x + "px";
+    this.dom.style.top = this.y + "px";
+}
+ball.prototype.move = function() {
+    this.calculation();
+    this.render();
+}
+
+ball.prototype.remove = function() {
+    container.removeChild(this.dom);
+    clearInterval(this.timer);
+}
+
+ball.prototype.init = function() {
+    container.appendChild(this.dom);
+    return this;
+}
+
+function baffle() {
+    this.x = 0;
+    this.w = 20;
+    this.threshold = 10;
+    this.dom = (function() {
+        var dom = document.createElement('span');
+        dom.className = "baffle";
+        container.appendChild(dom);
+        return dom;
+    })();
+}
+
+baffle.prototype.goLeft = function() {
+    this.x -= this.threshold;
+    this.x < 0 && (this.x = 0);
+    this.render();
+    return this;
+}
+
+baffle.prototype.goRight = function() {
+    this.x += this.threshold;
+    this.x > 500 - this.w && (this.x = 500 - this.w);
+    this.render();
+    return this;
+}
+
+baffle.prototype.render = function() {
+    this.dom.style.left = this.x + "px";
+}
+
+
+
+baffle.prototype.init = function() {
+    var that = this;
+    document.addEventListener('keydown', function(e) {
+        var keyCode = e.keyCode;
+        if (keyCode == 37) {
+            that.goLeft();
+        } else if (keyCode == 39) {
+            that.goRight();
+        }
+    });
+
+    return that;
+}
+
+
+function ballStart() {
+    return new ball().init();
+}
+
+function baffleStart() {
+    return new baffle().init();
+}
+var timer;
+
+function gameStart() {
+    container.innerHTML = '';
+    document.getElementById('score').innerHTML = '';
+    if (timer) clearInterval(timer);
+    var bf = baffleStart();
+    var ba = ballStart();
+    var score = 0;
+    timer = setInterval(() => {
+        if (ba.y == 490) {
+            if (ba.x < bf.x || ba.x > (bf.x + 20)) {
+                clearInterval(timer);
+                document.getElementById('state').innerHTML = '游戏结束';
+                bf = null;
+                ba = null;
+            } else {
+                document.getElementById('score').innerHTML = ++score;
+                ba.move();
+            }
+        } else {
+            ba.move();
+        }
+    }, 37);
+
+}
+
+
+window.onload = function() {
+    document.getElementById('start').addEventListener('click', function() {
+        gameStart();
+    });
+}
+</script>
+
+</html>
