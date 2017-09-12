@@ -156,6 +156,7 @@ var timer;
 function gameStart() {
     container.innerHTML = '';
     document.getElementById('score').innerHTML = '';
+    document.getElementById('state').innerHTML = '游戏开始...';
     if (timer) clearInterval(timer);
     var bf = baffleStart();
     var ba = ballStart();
